@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -27,16 +26,16 @@ public class CalendarSingleView extends View {
         init(year, month, today);
     }
 
-    public CalendarSingleView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init(2016, 10, 25);
-    }
-
-    public CalendarSingleView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-
-        init(2016, 10, 25);
-    }
+//    public CalendarSingleView(Context context, AttributeSet attrs) {
+//        super(context, attrs);
+//        init(2016, 10, 25);
+//    }
+//
+//    public CalendarSingleView(Context context, AttributeSet attrs, int defStyleAttr) {
+//        super(context, attrs, defStyleAttr);
+//
+//        init(2016, 10, 25);
+//    }
 
 
     @Override
@@ -58,7 +57,6 @@ public class CalendarSingleView extends View {
                     baseline, utils.weekPaint);
         }
         //选中时候的背景
-
         // 按下状态，选择状态背景色
         if (today == NO_MONTH && downBgIndex == weakSize) {
 
@@ -68,10 +66,12 @@ public class CalendarSingleView extends View {
         }
 
         //日期水平加垂直居中
+        Paint.FontMetricsInt fontMetricsDay = utils.weekDayPaint.getFontMetricsInt();
+        float baseDayline = utils.weekHeight+(utils.singleDayHeigh -
+                fontMetricsDay.bottom - fontMetricsDay.top) / 2f;
         int day = 0;
-        float weakDayOneHight = utils.height * 4 / 5f / 6f;
         for (int i = 0; i < 6; i++) {
-            float weakDayLine = baseline + utils.weekHeight / 2f + weakDayOneHight * (i * 2 + 1) / 2f;
+            float weakDayLine = baseDayline +utils.singleDayHeigh * (i * 2 ) / 2f;
             for (int j = 0; j < 7; j++) {
 
                 int color = utils.noSelectTextColor;
@@ -308,6 +308,7 @@ public class CalendarSingleView extends View {
                 //下个月
                 if ((i - firstWeak) >= showMonthDay) {
                     DataMonthBean.DayBean dayBean = new DataMonthBean.DayBean();
+                    //这个是设置农历的，犹豫在网上找了好久都没有找到正确的农历算法，暂时没有弄上去
                     dayBean.setLunarCalendar("");
 //                            lunarCalendar.getLunarDate(lastMonthYear, lastMonth, next, false));
                     dayBean.setSolarCalendar("" + next);

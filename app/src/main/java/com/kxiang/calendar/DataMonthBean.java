@@ -6,6 +6,7 @@ import java.util.List;
  * 项目名称:UserDefinedView
  * 创建人:kexiang
  * 创建时间:2016/10/21 12:52
+ * 当日的信息
  */
 
 public class DataMonthBean {
