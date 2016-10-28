@@ -21,8 +21,13 @@ import java.util.List;
  */
 
 public class CalendarSingleView extends View {
-    public CalendarSingleView(Context context, int year, int month, int today) {
+
+    private LunarCalendar lunarCalendar;
+
+    public CalendarSingleView(Context context, int year, int month, int today,
+                              LunarCalendar lunarCalendar) {
         super(context);
+        this.lunarCalendar = lunarCalendar;
         init(year, month, today);
     }
 
@@ -67,11 +72,20 @@ public class CalendarSingleView extends View {
 
         //日期水平加垂直居中
         Paint.FontMetricsInt fontMetricsDay = utils.weekDayPaint.getFontMetricsInt();
-        float baseDayline = utils.weekHeight+(utils.singleDayHeigh -
+        float baseDayline = utils.weekHeight + (utils.singleDayHeigh/2f -
                 fontMetricsDay.bottom - fontMetricsDay.top) / 2f;
+        //农历水平加垂直居中
+        Paint.FontMetricsInt fontMetricsLunarDay = utils.weekDayPaint.getFontMetricsInt();
+        float baseLunarDayline = utils.weekHeight + (utils.singleDayHeigh*3/2f -
+                fontMetricsLunarDay.bottom - fontMetricsLunarDay.top) / 2f;
+
+
         int day = 0;
         for (int i = 0; i < 6; i++) {
-            float weakDayLine = baseDayline +utils.singleDayHeigh * (i * 2 ) / 2f;
+            float weakDayLine = baseDayline + utils.singleDayHeigh * (i * 2) / 2f;
+
+            float weakDayLunarLine = baseLunarDayline + utils.singleDayHeigh * (i * 2) / 2f;
+
             for (int j = 0; j < 7; j++) {
 
                 int color = utils.noSelectTextColor;
@@ -84,12 +98,21 @@ public class CalendarSingleView extends View {
                     }
                 }
                 utils.weekDayPaint.setColor(color);
-                canvas.drawText(monthBean.getDay().get(day).getSolarCalendar(),
+                utils.weekLunarPaint.setColor(color);
+
+                canvas.drawText(
+                        monthBean.getDay().get(day).getSolarCalendar(),
                         utils.width * (1 + j * 2) / 14f,
                         weakDayLine, utils.weekDayPaint);
+                canvas.drawText(
+                        monthBean.getDay().get(day).getLunarCalendar(),
+                        utils.width * (1 + j * 2) / 14f,
+                        weakDayLunarLine, utils.weekLunarPaint);
+
                 day++;
             }
         }
+
 
     }
 
@@ -127,7 +150,7 @@ public class CalendarSingleView extends View {
                     if (monthBean.getDay().get(downDataIndex).isDimBright()) {
                         //响应监听事件
                         onItemClickListener.OnItemClick(monthBean.getDay().
-                                get(downDataIndex).getSolarCalendar());
+                                get(downDataIndex));
                     }
                 }
                 break;
@@ -176,6 +199,8 @@ public class CalendarSingleView extends View {
 
         //具体日期画笔
         private Paint weekDayPaint;
+        //农历画笔
+        private Paint weekLunarPaint;
         //当天日期颜色
         private int todayTextColor = Color.RED;
         //当月日期颜色
@@ -213,6 +238,14 @@ public class CalendarSingleView extends View {
             weekDayPaint.setTextSize(width / 6 * 0.35f);
             weekDayPaint.setStyle(Paint.Style.FILL);
             weekDayPaint.setTextAlign(Paint.Align.CENTER);
+
+            weekLunarPaint = new Paint();
+            weekLunarPaint.setColor(textColor);
+            weekLunarPaint.setAntiAlias(true);
+            weekLunarPaint.setTextSize(width / 6 * 0.25f);
+            weekLunarPaint.setStyle(Paint.Style.FILL);
+            weekLunarPaint.setTextAlign(Paint.Align.CENTER);
+
 
             gridPaint = new Paint();
             gridPaint.setColor(Color.RED);
@@ -271,6 +304,19 @@ public class CalendarSingleView extends View {
 
 
         int lastMonth = month - 1;
+        int lastMonthYear = year;
+        if (month == 1) {
+            lastMonth = 12;
+            lastMonthYear = year - 1;
+        }
+
+
+        int nextMonth = month + 1;
+        int nextMonthYear = year;
+        if (month == 12) {
+            nextMonth = 1;
+            nextMonthYear = year + 1;
+        }
 
         int firstWeak = weakSize = getWeek(year, month, 1);
 
@@ -309,18 +355,23 @@ public class CalendarSingleView extends View {
                 if ((i - firstWeak) >= showMonthDay) {
                     DataMonthBean.DayBean dayBean = new DataMonthBean.DayBean();
                     //这个是设置农历的，犹豫在网上找了好久都没有找到正确的农历算法，暂时没有弄上去
-                    dayBean.setLunarCalendar("");
-//                            lunarCalendar.getLunarDate(lastMonthYear, lastMonth, next, false));
+                    dayBean.setLunarCalendar(
+                            lunarCalendar.getLunarDate(lastMonthYear, lastMonth, next, false));
+                    dayBean.setLunarYear(lunarCalendar.getYear());
+                    dayBean.setLunarMonth(lunarCalendar.getLunarMonth());
                     dayBean.setSolarCalendar("" + next);
                     dayBean.setDimBright(false);
+
                     beanList.add(dayBean);
                     next++;
                 }
                 //当前月
                 else {
                     DataMonthBean.DayBean dayBean = new DataMonthBean.DayBean();
-                    dayBean.setLunarCalendar("");
-//                            lunarCalendar.getLunarDate(year, month, i + 1, false));
+                    dayBean.setLunarCalendar(
+                            lunarCalendar.getLunarDate(year, month, i + 1, false));
+                    dayBean.setLunarYear(lunarCalendar.getYear());
+                    dayBean.setLunarMonth(lunarCalendar.getLunarMonth());
                     dayBean.setSolarCalendar("" + (i + 1));
                     dayBean.setDimBright(true);
                     beanList.add(dayBean);
@@ -330,8 +381,10 @@ public class CalendarSingleView extends View {
                 //上个月
                 if (i < firstWeak) {
                     DataMonthBean.DayBean dayBean = new DataMonthBean.DayBean();
-                    dayBean.setLunarCalendar("");
-//                            lunarCalendar.getLunarDate(lastMonthYear, lastMonth, lastMonthDay, false));
+                    dayBean.setLunarCalendar(
+                            lunarCalendar.getLunarDate(lastMonthYear, lastMonth, lastMonthDay, false));
+                    dayBean.setLunarYear(lunarCalendar.getYear());
+                    dayBean.setLunarMonth(lunarCalendar.getLunarMonth());
                     dayBean.setSolarCalendar("" + lastMonthDay);
                     dayBean.setDimBright(false);
                     beanList.add(dayBean);
@@ -341,8 +394,10 @@ public class CalendarSingleView extends View {
                     //下个月
                     if ((i - firstWeak) >= showMonthDay) {
                         DataMonthBean.DayBean dayBean = new DataMonthBean.DayBean();
-                        dayBean.setLunarCalendar("");
-//                                lunarCalendar.getLunarDate(nextMonthYear, nextMonth, next, false));
+                        dayBean.setLunarCalendar(
+                                lunarCalendar.getLunarDate(nextMonthYear, nextMonth, next, false));
+                        dayBean.setLunarYear(lunarCalendar.getYear());
+                        dayBean.setLunarMonth(lunarCalendar.getLunarMonth());
                         dayBean.setSolarCalendar("" + next);
                         dayBean.setDimBright(false);
                         beanList.add(dayBean);
@@ -351,9 +406,11 @@ public class CalendarSingleView extends View {
                     //当前月
                     else {
                         DataMonthBean.DayBean dayBean = new DataMonthBean.DayBean();
-                        dayBean.setLunarCalendar("");
-//                                lunarCalendar.getLunarDate(year, month,
-//                                        (i + 1 - firstWeak), false));
+                        dayBean.setLunarCalendar(
+                                lunarCalendar.getLunarDate(year, month,
+                                        (i + 1 - firstWeak), false));
+                        dayBean.setLunarYear(lunarCalendar.getYear());
+                        dayBean.setLunarMonth(lunarCalendar.getLunarMonth());
                         dayBean.setSolarCalendar("" + (i + 1 - firstWeak));
                         dayBean.setDimBright(true);
                         beanList.add(dayBean);
@@ -403,6 +460,6 @@ public class CalendarSingleView extends View {
 
     //监听接口
     public interface OnItemClickListener {
-        void OnItemClick(String date);
+        void OnItemClick(DataMonthBean.DayBean dayBean);
     }
 }

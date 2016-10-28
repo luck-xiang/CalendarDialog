@@ -1,5 +1,6 @@
 package com.kxiang.calendar;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -9,7 +10,7 @@ import java.util.List;
  * 当日的信息
  */
 
-public class DataMonthBean {
+public class DataMonthBean implements Serializable {
 
     private String month;
     private List<DayBean> day;
@@ -30,11 +31,29 @@ public class DataMonthBean {
         this.day = day;
     }
 
-    public static class DayBean {
+    public static class DayBean implements Serializable {
 
         private String solarCalendar;
         private String lunarCalendar;
         private boolean dimBright;
+        private int lunarYear;
+        private String lunarMonth;
+
+        public int getLunarYear() {
+            return lunarYear;
+        }
+
+        public void setLunarYear(int lunarYear) {
+            this.lunarYear = lunarYear;
+        }
+
+        public String getLunarMonth() {
+            return lunarMonth;
+        }
+
+        public void setLunarMonth(String lunarMonth) {
+            this.lunarMonth = lunarMonth;
+        }
 
         public boolean isDimBright() {
             return dimBright;

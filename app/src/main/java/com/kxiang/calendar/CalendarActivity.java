@@ -38,8 +38,17 @@ public class CalendarActivity extends FragmentActivity implements View.OnClickLi
                 calender.show(getSupportFragmentManager(), "dialog_calender");
                 calender.setOnItemClickListener(new DialogCalender.OnItemClickListener() {
                     @Override
-                    public void OnItemClick(int year, int month, int day) {
-                        tv_calendar.setText(year + "年" + month + "月" + day + "日");
+                    public void OnItemClick(int year, int month, DataMonthBean.DayBean dayBean) {
+                        tv_calendar.setText(
+                                "阳历：" +
+                                        year + "年" +
+                                        month + "月" +
+                                        dayBean.getSolarCalendar() + "日" +
+                                        "\n农历：" +
+                                        dayBean.getLunarYear() + "年" +
+                                        dayBean.getLunarMonth() +
+                                        dayBean.getLunarCalendar()
+                        );
                     }
                 });
                 break;

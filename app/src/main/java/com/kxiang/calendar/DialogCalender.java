@@ -46,26 +46,33 @@ public class DialogCalender extends DialogFragment implements View.OnClickListen
     private Calendar calender;
 
     private final int pagerItem = 960;
+    private int maxMonth;
     private TextView tv_calendar_year;
     private TextView tv_calendar_month;
+    //初始化农历算法
+    private LunarCalendar lunarCalendar;
 
 
     private void initVpCalender() {
 
+        calender = Calendar.getInstance();
+        year = calender.get(Calendar.YEAR);
+        month = calender.get(Calendar.MONTH) + 1;
+        day = calender.get(Calendar.DAY_OF_MONTH);
+        maxMonth = (2050 - year + 1) * 12 - month + pagerItem + 1;
+
+        lunarCalendar = new LunarCalendar();
         vp_calender = (ViewPager) getView().findViewById(R.id.vp_calender);
         tv_calendar_year = (TextView) getView().findViewById(R.id.tv_calendar_year);
         tv_calendar_month = (TextView) getView().findViewById(R.id.tv_calendar_month);
+        tv_calendar_year.setText(year + "年");
+        tv_calendar_month.setText(month + "月");
 
         getView().findViewById(R.id.btn_last).setOnClickListener(this);
         getView().findViewById(R.id.btn_next).setOnClickListener(this);
         vp_calender.setAdapter(new CalenderPageAdapter());
         vp_calender.setCurrentItem(pagerItem);
-        calender = Calendar.getInstance();
-        year = calender.get(Calendar.YEAR);
-        month = calender.get(Calendar.MONTH) + 1;
-        day = calender.get(Calendar.DAY_OF_MONTH);
-        tv_calendar_year.setText(year + "年");
-        tv_calendar_month.setText(month + "月");
+
         vp_calender.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -148,6 +155,12 @@ public class DialogCalender extends DialogFragment implements View.OnClickListen
                 break;
             case R.id.btn_next:
 
+                if (getInt(tv_calendar_year.getText() + "") == 2050
+                        &&
+                        getInt(tv_calendar_month.getText() + "") == 12
+                        ) {
+                    return;
+                }
                 vp_calender.setCurrentItem(vp_calender.getCurrentItem() + 1);
                 break;
 
@@ -180,7 +193,7 @@ public class DialogCalender extends DialogFragment implements View.OnClickListen
 
 
             CalendarSingleView view = new CalendarSingleView(getContext(), yearTemp, monthTemp,
-                    dayTemp);
+                    dayTemp, lunarCalendar);
             view.setOnItemClickListener(calendarItemClickListener);
 
             container.addView(view);
@@ -195,7 +208,7 @@ public class DialogCalender extends DialogFragment implements View.OnClickListen
 
         @Override
         public int getCount() {
-            return 2000;
+            return maxMonth;
         }
 
         @Override
@@ -209,12 +222,15 @@ public class DialogCalender extends DialogFragment implements View.OnClickListen
 
     class CalendarItemClickListener implements CalendarSingleView.OnItemClickListener {
         @Override
-        public void OnItemClick(String date) {
+        public void OnItemClick(DataMonthBean.DayBean dayBean) {
 
             if (onItemClickListener != null)
-                onItemClickListener.OnItemClick(getInt(tv_calendar_year.getText() + ""),
+                onItemClickListener.OnItemClick(
+                        getInt(tv_calendar_year.getText() + ""),
                         getInt(tv_calendar_month.getText() + ""),
-                        Integer.parseInt(date));
+                        dayBean
+                );
+
 
         }
     }
@@ -234,7 +250,7 @@ public class DialogCalender extends DialogFragment implements View.OnClickListen
 
     //监听接口
     public interface OnItemClickListener {
-        void OnItemClick(int year, int month, int day);
+        void OnItemClick(int year, int month, DataMonthBean.DayBean dayBean);
     }
 
 
